@@ -1,14 +1,163 @@
 # 202430113 안지혜
-## 2026-09-23 (Week 4)
 
-## Link Component
+## 2026-09-30 (Week 5)
+### 1. How Navigation Works
+
+Next.js의 네비게이션은 크게 다음 네 가지 방식으로 동작한다.
+
+- Server Rendering
+- Prefetching
+- Streaming
+- Client-side Transition
+
+---
+
+#### 1.1 Server Rendering
+
+Next.js의 `layout`과 `page`는 기본적으로 React Server Component로 동작한다.
+
+서버 렌더링은 크게 두 가지 방식으로 나뉜다.
+
+- **Static Rendering**: 빌드 또는 재검증 시점에 미리 렌더링하고 결과를 캐시
+- **Dynamic Rendering**: 사용자의 요청이 들어온 시점에 렌더링
+
+서버 렌더링은 새 경로를 보여주기 전에 서버 응답을 기다려야 할 수 있다는 단점이 있다.  
+Next.js는 이를 줄이기 위해 `Prefetching`과 `Client-side Transition`을 사용한다.
+
+##### Initial Visit
+
+일반적인 CSR 방식의 React 앱은 초기 HTML이 거의 비어 있고, JavaScript가 실행된 후 화면이 만들어진다.
+
+Next.js는 최초 접근 시 서버에서 HTML을 생성해 전달하기 때문에 사용자는 콘텐츠를 더 빠르게 확인할 수 있다.
+
+이후 React의 `hydration`을 거쳐 버튼 클릭 등의 상호작용이 가능해진다.
+
+- 초기 화면 표시 속도 개선
+- UX 개선
+- SEO에 유리
+
+---
+
+#### 1.2 Prefetching
+
+Prefetching은 사용자가 실제로 이동하기 전에 다음 페이지에 필요한 데이터를 미리 받아두는 방식이다.
+
+Next.js의 `<Link>` 컴포넌트를 사용하면 연결된 경로를 미리 가져올 수 있다.
+
+```tsx
+import Link from "next/link";
+
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html>
+      <body>
+        <nav>
+          <Link href="/blog">Blog</Link>
+          <a href="/contact">Contact</a>
+        </nav>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+- `<Link>` : Prefetching 및 Client-side Navigation 지원
+- `<a> `: 일반적인 페이지 이동
+경로 종류에 따라 Prefetching 범위도 달라진다.
+- 정적 경로: 전체 경로 Prefetch 가능
+- 동적 경로: Prefetch를 생략하거나 `loading.tsx`가 있는 경우 일부만 Prefetch
+동적 경로를 모두 미리 가져오지 않는 이유는 사용자가 방문하지 않을 페이지까지 서버에서 처리하는 낭비를 줄이기 위해서이다.
+
+#### 1.3 Streaming
+Streaming은 페이지 전체 렌더링이 끝날 때까지 기다리지 않고 준비된 부분부터 클라이언트에 전달하는 방식
+즉 일부 데이터가 늦게 준비되더라도 먼저 사용할 수 있는 UI부터 표시할 수 있다.
+동적 경로에서는 다음과 같은 요소를 먼저 보여줄 수 있다.
+- 공통 Layout
+- Loading UI
+- Loading Skeleton
+
+##### loading.tsx
+라우트 폴더에 loading.tsx를 추가하면 페이지가 로드되는 동안 보여줄 UI를 정의할 수 있다.
+```ts
+export default function Loading() {
+  return <LoadingSkeleton />;
+}
+```
+Next.js는 내부적으로 페이지 콘텐츠를 `<Suspense>` 경계로 처리하며, 실제 페이지가 준비되기 전까지 `loading.tsx`의 UI를 보여 준다
+
+##### loading.tsx 장점
+- 사용자가 이동 즉시 화면 변화를 확인 가능
+- 로딩 중에도 공통 Layout 유지
+- 페이지 전체가 준비될 때까지 빈 화면을 보는 문제 감소
+- Streaming과 함께 사용해 동적 경로의 체감 속도 개선
+
+#### 1.4 Client-side Transition
+일반적인 페이지 이동은 전체 문서를 다시 불러오기 때문에 다음과 같은 문제가 생길 수 있다.
+- 기존 state 초기화
+- 스크롤 위치 초기화
+- 페이지 로딩 중 상호작용 중단
+Next.js의 <Link>는 전체 페이지를 새로고침하지 않고 필요한 부분만 변경한다.
+따라서
+- 공통 Layout 유지
+- 기존 UI 유지
+- Prefetch된 페이지를 빠르게 표시
+- Streaming과 함께 빠른 동적 라우팅 가능
+즉 서버 렌더링을 사용하면서도 사용자 입장에서는 SPA처럼 자연스러운 페이지 전환을 제공한다.
+
+### 2. Navigation이 느려지는 경우
+Next.js는 기본적으로 빠른 네비게이션을 제공하지만, 특정 상황에서는 페이지 이동이 느리게 느껴질 수 있다.
+
+#### 2.1 동적 경로에 loading.tsx가 없는 경우
+동적 경로는 서버 응답을 기다린 후 페이지가 표시될 수 있다.
+이 경우 사용자는 클릭 후 아무 변화가 없어 앱이 멈춘 것처럼 느낄 수 있다.
+따라서 동적 라우트에는 loading.tsx를 추가해 로딩 UI를 보여주는 것이 좋다.
+```ts
+export default function Loading() {
+  return <LoadingSkeleton />;
+}
+```
+
+#### 2.2 generateStaticParams가 없는 동적 세그먼트
+`[slug]` 같은 동적 경로도 미리 경로를 알 수 있다면 빌드 시 정적으로 생성 가능
+하지만 `generateStaticParams`가 없으면 필요한 페이지가 요청 시점에 동적으로 렌더링 될 수 있음
+```ts
+export async function generateStaticParams() {
+  const posts = await fetch("https://.../posts").then((res) => res.join());
+
+  return posts.map((post) => ({
+    sluh: post.slug,
+  }));
+}
+```
+페이지에서는 전달된 `slug`값을 사용 가능
+```ts
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  // ...
+}
+```
+`generateStaticParams`를 사용하면 미리 알 수 있는 동적 경로를 빌드 시 생성해 요청 시 렌더링 부담 줄일 수 있음
+--- 
+
+## 2026-09-23 (Week 4)
+### Link Component
 
 - 페이지 이동 시 사용하는 Next.js 컴포넌트
 - `href` 속성 필수
 - Root Layout은 반드시 존재하며 `html`, `body` 포함
 - 하위 페이지의 Layout은 선택 사항
 
-## 중첩 라우트
+### 중첩 라우트
 
 - 폴더를 중첩하면 URL 경로도 함께 중첩됨
 - 예: `/blog/[slug]`
