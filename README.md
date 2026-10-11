@@ -1,5 +1,89 @@
 # 202430113 안지혜
 
+## 2026-10-07 (Week 6)
+## async를 미리 사용하는 이유
+
+Next.js App Router의 Server Component에서는 데이터 요청을 비동기로 처리하는 경우가 많기 때문에
+'await'가 당장 없더라도 'async'를 붙여 사용 가능
+
+- 페이지 함수 작성 방식 통일 가능
+- 이후 'fetch()'나 DB 요청 추가 용이
+- Server Component는 Promise를 반환하는 형태 지원
+
+#### 2.3 느린 네트워크
+네트워크가 느리면 사용자가 링크를 크릭하기 전에 Prefetch가 끝나지 않을 수 있음
+이 경우 'loading.tsx'도 미리 준비되지 않아 화면 변화가 늦게 느껴질 수 있음
+'useLinkStatus'를 이용하면 이동 중임을 사용자에게 표시 가능
+
+```tsx
+'use client'
+
+import { useLinkStatus } from 'next/link'
+
+export default function LoadingIndicator() {
+  const { pending } = useLinkStatus()
+
+  return (
+    <span className={pending ? 'is-pending' : ''} />
+  )
+}
+```
+스피너나 텍스트 효과 등을 이용해 페이지 이동이 진행 중이라는 피드백을 줄 수 있다.
+
+#### 2.4 Prefetch 비활성화
+`<Link>`의 `prefetch` 값을 `false`로 설정하면 자동 Prefetch를 끌 수 있다.
+```ts
+<Link prefetch={false} href="/blog">
+  Blog
+</Link>
+```
+링크가 매우 많은 페이지에서는 불필요한 네트워크 요청을 줄이는 데 사용 가능
+
+단점:
+- 정적 경로도 클릭 이후에 로드됨
+- 동적 경로는 이동 전에 서버 렌더링을 기다려야 할 수 있다.
+Prefetch를 완전히 끄는 대신 사용자가 링크에 마우스를 올렸을 때만 실행하는 방법도 사용 가능
+
+#### 2.5 Hydration 지연
+`<Link>`를 통한 클라이언트 기능은 Hydration 이후 사용 가능하다.
+초기 JS Bundle이 크면 Hydration이 늦어지고 Prefetch 시작도 지연될 수 있다
+
+개선 방법:
+- @next/bundle-analyzer로 번들 크기 확인
+- 불필요하게 큰 dependency 제거
+- 가능하면 Client Component의 로직을 Server Component로 이동
+
+### Server Component & Client Component
+Next.js에서는 필요한 기능에 따라 Server Component와 Client Component를 나누어 사용 가능하다
+
+**Client Component**
+브라우저에서 실행되어야 하는 기능이 필요할 때 사용한다
+- State 사용
+- `OnClick`, `onChange` 등의 Event Handler
+- `useEffect` 등의 Lifecycle Logic
+- Custom Hook
+- `window`, `localStorage`, `navigator.geolocation` 등의 Browser API
+Client Component로 만드려면 파일 상단에 작성한다
+```ts
+'use client'
+```
+
+### Server Component
+Next.js App Router에서 기본적으로 사용되는 Component이다.
+
+다음과 같은 경우에 적합하다.
+- DB 또는 API에서 데이터 가져오기
+- API Key, Token 등 보안 정보 보호
+- Client에 전달하는 JavaScript 양 감소
+- 초기 콘텐츠 표시 성능 개선
+- Streaming을 이용한 점진적인 콘텐츠 전달
+
+
+정리하면 **사용자 상호작용이나 브라우저 기능이 필요하면 Client Component**, 데이터 처리와 서버 작업 중심이라면 **Server Component**를 사용하는 것이 적절하다.
+
+
+---
+
 ## 2026-09-30 (Week 5)
 ### 1. How Navigation Works
 
@@ -9,8 +93,6 @@ Next.js의 네비게이션은 크게 다음 네 가지 방식으로 동작한다
 - Prefetching
 - Streaming
 - Client-side Transition
-
----
 
 #### 1.1 Server Rendering
 
@@ -35,8 +117,6 @@ Next.js는 최초 접근 시 서버에서 HTML을 생성해 전달하기 때문�
 - 초기 화면 표시 속도 개선
 - UX 개선
 - SEO에 유리
-
----
 
 #### 1.2 Prefetching
 
@@ -147,6 +227,7 @@ export default async function Page({
 }
 ```
 `generateStaticParams`를 사용하면 미리 알 수 있는 동적 경로를 빌드 시 생성해 요청 시 렌더링 부담 줄일 수 있음
+
 --- 
 
 ## 2026-09-23 (Week 4)
@@ -207,6 +288,7 @@ URL의 검색 조건(Query String)을 읽을 때 사용
 - page=2
 - 페이지네이션, 필터링 등에 활용
 - App Router에서는 페이지의 props를 통해 전달받아 사용
+
 ---
 
 ## 2026-09-16 (Week 3)
@@ -255,6 +337,7 @@ URL의 검색 조건(Query String)을 읽을 때 사용
 #### Layout vs Template
 - layout : 페이지 이동 후에도 상태가 유지되는 형태
 - template : 이동 시 새로 생성되어 상태가 초기화되는 형태
+
 ---
 
 ## 2026-09-09 (Week 2)
