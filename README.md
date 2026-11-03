@@ -1,4 +1,31 @@
 # 202430113 안지혜
+## 2026.10.28 (Week 9)
+
+### Client JavaScript Bundle 크기 줄이기
+
+Client JavaScript 번들의 크기를 줄이기 위해서는 UI의 큰 영역 전체를 Client Component로 만드는 대신, **실제로 사용자와 상호작용이 필요한 특정 컴포넌트에만 `"use client"`를 사용하는 방식**이 좋다.
+
+예를 들어 `<Layout>` 컴포넌트 안에 로고, 네비게이션 링크, 검색창이 함께 있다고 가정할 수 있다.
+
+이 중 로고와 네비게이션 링크처럼 사용자 입력이나 상태 관리가 필요하지 않은 정적인 요소들은 Client Component일 필요가 없다. 따라서 `<Layout>` 전체를 Client Component로 만들 필요 없이 Server Component 상태로 유지할 수 있다.
+
+반면 `<Search />` 컴포넌트는 사용자의 입력을 받고 이에 따라 동작하는 대화형 요소이므로 Client Component로 만들어야 한다.
+
+즉, 다음과 같이 구성할 수 있다.
+
+```text
+Layout (Server Component)
+├── Logo
+├── Navigation
+└── Search (Client Component)
+```
+
+이처럼 Client Component가 필요한 부분만 분리하여 `"use client"`를 적용하면, 불필요하게 많은 UI가 Client JavaScript 번들에 포함되는 것을 줄일 수 있다.
+
+결과적으로 정적인 부분은 Server Component로 유지하고, 상호작용이 필요한 부분만 Client Component로 구성하는 방식이 효율적이다.
+
+---
+
 ## 2026.10.14 (Week 7)
 ### Optimistic Update
 
