@@ -1,4 +1,88 @@
 # 202430113 안지혜
+## 2026.11.11 (Week 11)
+
+### Context Provider 동작 순서
+
+Context Provider는 상태와 상태 변경 함수를 하위 컴포넌트에 제공하고, 상태가 변경되면 이를 사용하는 컴포넌트도 함께 갱신된다.
+
+Theme 변경 과정을 예로 들면 다음과 같다.
+
+1. 사용자가 `ThemeStatus`의 버튼 클릭
+2. `ThemeStatus`에서 Provider가 제공한 `toggleTheme()` 호출
+3. Provider 내부의 `setTheme()` 실행
+4. `theme` 상태가 변경되고 Provider와 하위 컴포넌트가 리렌더링
+5. `useEffect`가 실행되어 `document.documentElement.dataset.theme` 값 변경
+6. 변경된 theme가 전역 스타일과 UI에 반영
+
+```text
+RootLayout 렌더링
+        ↓
+ThemeProvider 생성
+(useState로 theme 관리)
+        ↓
+Provider value를 하위 컴포넌트에 제공
+        ↓
+ThemeStatus에서 useContext로 값 사용
+        ↓
+사용자 버튼 클릭
+        ↓
+toggleTheme() 호출
+        ↓
+setTheme(newTheme) 실행
+        ↓
+Provider와 Consumer 리렌더링
+        ↓
+useEffect 실행
+        ↓
+document.documentElement.dataset.theme 변경
+        ↓
+새로운 Theme가 UI에 반영
+```
+
+--- 
+
+## 2026.11.04 (Week 10)
+
+### Interleaving
+**Interleaving**은 여러 데이터 블록이나 비트를 서로 섞어서 전송하거나 처리하는 기술.
+
+특히 데이터 통신에서는 연속적으로 오류가 발생하는 **버스트 오류(Burst Error)**의 영향을 줄이고, 오류 저정 코드를 보다 효과적으로 적용하기 위해 사용된다.
+
+데이터를 일정한 순서로 그대로 전송하는 대신 여러 데이터의 순서를 섞어 전송하면, 특정 구간에서 연속적인 오류가 발생하더라도 원래 데이터 기준에서는 오류가 여러 위치로 분산되는 효과를 얻을 수 있다.ㄴ
+
+### Server Component와 Client Component
+**Server Component**를 **Client Component**의 prop으로 전달할 수 있다.
+
+이를 이용하면 Client Component 내부에서 서버에서 렌더링된 UI를 시각적으로 중첩하여 표현할 수 있따.
+
+즉, Client Component가 필요한 영역 안에서도 Server Component를 함꼐 구성하여 사용할 수 있다.
+
+### Context
+Next.js에서는 React의 **Context API**fmㄹ 이용하여 여러 컴포넌트 사이에서 데이터를 공유할 수 있다.
+
+일반적으로 부모 컴포넌트의 데이터를 자식 컴포넌트에 전달할 때 props를 사용하지만, 컴포넌트 구조가 깊어지면 여러 단계를 거쳐 계속 props를 전달해야 하는 문제가 발생할 수 있다.
+
+Context를 사용하면 이러한 과정 없이 필요한 컴포넌트에서 공유 데이터에 접근할 수 있다
+
+#### Context의 주요 특징
+
+##### 전역 상태 관리
+Context를 이용하면 여러 컴포넌트에서 공통으로 사용하는 데이터를 한 곳에서 관리하고 공유할 수 있다.
+- 예
+  - 사용자 정보
+  - 테마 설정
+
+##### Props Drilling 문제 해결
+- 컴포넌트 트리가 깊어질수록 자식 컴포넌트까지 데이터를 전달하기 위해 여러 단계에서 props를 계속 넘겨야 할 수 있다.
+- Context를 사용하면 중간 컴포넌트를 거치지 않고 필요한 컴포넌트에서 직접 공유 데이터에 접근할 수 있다.
+- 따라서 불필요한 props 전달을 줄이고 코드의 가독성과 유지보수성을 높일 수 있다.
+
+##### React Component에서 사용
+- Context는 React에서 제공하는 기능이다.
+- Next.js 역시 React를 기반으로 하기 때문에 React Component에서 Context API를 이용하여 데이터를 공유하는 방식으로 사용할 수 있다.
+
+---
+
 ## 2026.10.28 (Week 9)
 
 ### Client JavaScript Bundle 크기 줄이기
