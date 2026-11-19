@@ -1,4 +1,72 @@
 # 202430113 안지혜
+
+## 2026.11.18 (Week 12)
+
+### Fetching Data
+Next.js 에서 데이터를 가져오는 방식은 Server Component와 Client Component에 따라 나눌 수 있다.
+
+#### Server Component
+Server Component에서는 주로 두 가자ㅣ 방법으로 데이터를 불러옴
+1. fetch API
+2. ORM or Database
+
+##### fetch API
+Server Component를 async 함수로 선언 후 await fetch()를 사용하여 데이터를 가져온다
+
+```ts
+export default async function Page() {
+  const data = await fetch("https://api.vercel.app/blog");
+  const posts = await data.json();
+
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+- fetch 응답은 기본적으로 캐싱되지 않음
+- Next.js는 페이지를 미리 렌더링하고 성능 향상을 위해 출력 결과를 캐싱할 수 있음
+- 동적 렌더링이 필요한 경우 { cache: 'no-store' } 옵션 사용
+- 개발 중에는 fetch 호출을 기록하여 디버깅에 활용 가능
+
+##### ORM(Object-Relational Mapping)
+ORM은 객체 지향 프로그래밍 언어의 객체와 RDB의 데이터를 서로 연결하고 변환해 주는 기술
+
+#### Client Component
+Client Component에서 데이터를 처리하는 방법은 크게 두 가지가 있다.
+1. React의 use Hook
+2. SWR, React Query 등의 통신 라이브러리
+
+##### use Hook을 사용한 Streaming Data
+React의 use Hook을 사용하면 서버에서 가져온 데이터를 Client Compoenent에서 사용 가능
+
+```ts
+Server Component
+        ↓
+데이터 fetch
+        ↓
+Promise를 prop으로 전달
+        ↓
+Client Component
+        ↓
+use(Promise)
+        ↓
+데이터 사용
+```
+
+- Server Component는 async 함수를 사용할 수 있기 때문에 서버에서 데이터를 가져온 뒤 그 결과를 Client Component에 전달할 수 있다.
+
+
+- 반면 Client Component에서는 렌더링 과정에서 Server Component처럼 async 함수를 사용하는 방식이 제한되기 때문에, 서버에서 생성한 Promise를 prop으로 전달받아 use(Promise)를 통해 데이터를 사용할 수 있다.
+
+
+- 즉, 데이터 요청은 Server Component에서 처리하고 Client Component는 전달받은 데이터를 사용하는 방식으로 구성할 수 있다.
+
+---
+
 ## 2026.11.11 (Week 11)
 
 ### Context Provider 동작 순서
